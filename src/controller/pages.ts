@@ -12,10 +12,10 @@ export const getTablePage = async (req: Request, res: Response): Promise<void> =
     res.render('error', { message: result.err.sqlMessage });
   } else {
     const fields: Array<string> = [];
-    for (const [key, value] of Object.entries(result.data[0])) {
+    for (const [key, value] of Object.entries(result.body[0])) {
       fields.push(key);
     }
-    const data = Object.values(JSON.parse(JSON.stringify(result.data)));
+    const data = Object.values(JSON.parse(JSON.stringify(result.body)));
     res.render('table_fields', { fields: fields, data: data });
   }
 };

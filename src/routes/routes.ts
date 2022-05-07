@@ -13,6 +13,8 @@ router.get('/db/all', dbController.getAllTables);
 
 router.get('/db/:name', dbController.getTable);
 
+router.put('/db/:name', dbController.insertInTable);
+
 // ====== PAGES ===========
 
 router.get('/db/page/:name', pagesController.getTablePage);
