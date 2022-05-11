@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import path from "path";
 import morgan from 'morgan';
 import sassMiddleware from 'node-sass-middleware';
+import bcrypt from "bcrypt";
 import {genericErrorHandler, notFoundError} from "./src/middlewares/errorHandler";
 import router from "./src/routes/routes";
 import {headersOptions} from "./src/middlewares/cors";
@@ -41,4 +42,10 @@ connectToDB();
 
 app.listen(port, () => {
     console.log(`⚡️[server]: Running at http://localhost:${port}`);
+    const getHash = async () => {
+        const salt = await bcrypt.genSalt(10);
+        const hasPassword = await bcrypt.hash("123456", salt);
+        console.log(hasPassword.length);
+    }
+    getHash();
 });

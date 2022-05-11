@@ -75,4 +75,13 @@ export interface InsertionResI {
   "changedRows": number
 }
 
-export type DBRowT = Array<DovTovI | DovFirmI | PreyskurantI | RealTovI | TableInfoI>;
+export interface UserDataI {
+  id: number,
+  name: string,
+  code: string,
+  mobile: string,
+  email: string,
+  status: 1 | 2 | 3 //  r-- \ rw- \ rwd
+}
+
+export type DBRowT = Array<DovTovI | DovFirmI | PreyskurantI | RealTovI | TableInfoI | UserDataI>;

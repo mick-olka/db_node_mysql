@@ -10,7 +10,6 @@ import * as homeService from "../service/home"
  */
 export const getAppInfo = (req: Request, res: Response) => {
   const result = homeService.getAppInfo();
-
   res.json(result);
 };
 

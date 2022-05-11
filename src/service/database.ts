@@ -1,13 +1,14 @@
 // @ts-ignore
 import mysql from 'mysql';
 import {
+  DBRowT,
   DovFirmI,
   DovTovI, InsertionResI,
   PreyskurantI,
   QueryDBResI,
   QueryError,
   QueryResI,
-  RealTovI
+  RealTovI, UserDataI
 } from '../types/sqlTypes/SQLTypes';
 import CONFIG from '../config/config';
 
@@ -19,11 +20,14 @@ let connected = false;
 //   database: CONFIG.DB.DATABASE,
 // });
 
+type DBRow = DovTovI | DovFirmI | PreyskurantI | RealTovI;
+
 export let con = mysql.createPool({
   host: CONFIG.DB.HOST,
   user: CONFIG.DB.USER,
   password: CONFIG.DB.PASSWORD,
   database: CONFIG.DB.DATABASE,
+  timezone: 'utc'
 });
 
 /**
@@ -57,25 +61,67 @@ const queryDB = async (query: string): Promise<QueryDBResI> => {
   });
 };
 
-export const getAllTables = async (): Promise<QueryDBResI> => {
-  const query = `SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=\'BASE TABLE\' AND TABLE_SCHEMA='${CONFIG.DB.DATABASE}'`;
+export const getAllTables = async (tablesNamesList?: string[]): Promise<QueryDBResI> => {
+  let tablesList = '';
+  if (tablesNamesList) {
+    tablesList = ` AND (${ tablesNamesList.map(tn => { return `TABLE_NAME = '${tn}'` }).join(' or ') })`
+  }
+  const query = `SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=\'BASE TABLE\' AND TABLE_SCHEMA='${CONFIG.DB.DATABASE}'${tablesList}`;
   return await queryDB(query);
 };
+
 
 export const getTableFields = async (name: string): Promise<QueryDBResI> => {
   const query = `SELECT * FROM ${name}`;
   return await queryDB(query);
 };
 
-export const insertElement = async (name: string, element: DovTovI | DovFirmI | PreyskurantI | RealTovI): Promise<QueryDBResI> => {
+export const insertElement = async (name: string, element: DBRow): Promise<QueryDBResI> => {
   let fields: string[] = [], values: any[] = [];
-  console.log(element);
-  Object.entries(element).forEach(entr => {
-    fields.push(entr[0]);
-    if (typeof entr[1] === "string" && entr[1][0] !== "\"") {
-      values.push(`'${entr[1]}'`);
-    } else values.push(entr[1]);
+  Object.entries(element).forEach(([key, value]) => {
+    fields.push(key);
+    if (typeof value === "string" && value[0] !== "\"") {
+      values.push(`'${value}'`);
+    } else values.push(value);
   });
   const query = `INSERT INTO ${name} (${fields.join(', ')}) VALUES (${values.join(', ')})`;
+  return await queryDB(query);
+};
+
+export const updateElement = async (name: string, prevElement: DBRow, element: DBRow): Promise<QueryDBResI> => {
+  let fields: string[] = [], prevFields: string[] = [];
+  Object.entries(element).forEach(([key, value]) => {
+    fields.push(`\`${key}\` = '${value}'`);
+  });
+  Object.entries(prevElement).forEach(([key, value]) => {
+    prevFields.push(`(\`${key}\` = '${value}')`);
+  });
+  const query = `UPDATE ${name} SET ${fields.join(', ')} WHERE ${prevFields.join(' and ')}`;
+  return await queryDB(query);
+};
+
+export const deleteElement = async (name: string, element: DBRow): Promise<QueryDBResI> => {
+  let fields: string[] = [];
+  Object.entries(element).forEach(([key, value]) => {
+    fields.push(`(\`${key}\` = '${value}')`);
+  });
+  const query = `DELETE FROM ${name} WHERE ${fields.join(' and ')}`;
+  return await queryDB(query);
+};
+
+export const getUser = async (name: string): Promise<UserDataI | null> => {
+  const query = `SELECT * FROM users WHERE name = '${name}'`;
+  const response = await queryDB(query);
+  //  @ts-ignore
+  return response.body[0] || null;
+}
+
+export const createUser = async (user: UserDataI): Promise<QueryDBResI> => {
+  let fields: string[] = [], values: any[] = [];
+  Object.entries(user).forEach(([key, value]) => {
+    fields.push(key);
+    values.push(`'${value}'`);
+  });
+  const query = `INSERT INTO users (${fields.join(', ')}) VALUES (${values.join(', ')})`;
   return await queryDB(query);
 };

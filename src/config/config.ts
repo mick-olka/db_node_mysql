@@ -24,7 +24,8 @@ const CONFIG = {
     USER: 'dev',
     PASSWORD: 'dev',
     DATABASE: 'db_l1',
-  }
+  },
+  TOKEN_SECRET: process.env.TOKEN_SECRET
 };
 
 export default CONFIG;
