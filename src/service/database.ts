@@ -1,18 +1,15 @@
 // @ts-ignore
-import mysql from 'mysql';
+import mysql from 'mysql2';
 import {
-  DBRowT,
   DovFirmI,
-  DovTovI, InsertionResI,
+  DovTovI,
   PreyskurantI,
   QueryDBResI,
   QueryError,
-  QueryResI,
   RealTovI, UserDataI
 } from '../types/sqlTypes/SQLTypes';
 import CONFIG from '../config/config';
 
-let connected = false;
 // export let con = mysql.createConnection({
 //   host: CONFIG.DB.HOST,
 //   user: CONFIG.DB.USER,
@@ -20,51 +17,50 @@ let connected = false;
 //   database: CONFIG.DB.DATABASE,
 // });
 
+const handleErrorMessage = (e: QueryError) => {
+  if (e.errno === 1045 || e.errno === 1251) return 'Wrong Credentials';
+  if (e.errno === 1396) return 'User already exists or user data invalid';
+  return e.sqlMessage;
+}
+
 type DBRow = DovTovI | DovFirmI | PreyskurantI | RealTovI;
 
-export let con = mysql.createPool({
-  host: CONFIG.DB.HOST,
-  user: CONFIG.DB.USER,
-  password: CONFIG.DB.PASSWORD,
-  database: CONFIG.DB.DATABASE,
-  timezone: 'utc'
-});
+export let pool: any = null;
 
-/**
- * Connect to mysql db.
- *
- * @returns {boolean}
- */
-export const connectToDB = () => {
-  con.getConnection((err: Error) => {
-    if (err) {
-      connected = false;
-      throw err;
-    }
-    console.log('Connected!!!');
-    connected = true;
-  });
+export const connectToDB = async (name: string, pwd: string): Promise<{ success: boolean, err: any }> => {
+  try {
+    pool = mysql.createPool({
+      host: CONFIG.DB.HOST,
+      user: name,
+      password: pwd,
+      database: CONFIG.DB.DATABASE,
+      timezone: 'utc'
+    });
+    await getUser(name);
+    return {success: true, err: null}
+  } catch (e) {
+    return {success: false, err: e}
+  }
 };
 
 const queryDB = async (query: string): Promise<QueryDBResI> => {
   return new Promise((resolve, reject) => {
-    if (connected) {
-      con.query(query, (err: QueryError, result: any, fields: any) => {
-        if (err) {
-          return reject(err);
-        }
-        return resolve({body: result, fields: fields, err: null});
-      });
-    } else {
-      return reject({ sqlMessage: 'Not Connected or script Error' });
-    }
+    pool.query(query, (err: QueryError, result: any, fields: any) => {
+      if (err) {
+        console.log(err);
+        return reject(handleErrorMessage(err));
+      }
+      return resolve({body: result, fields: fields, err: null});
+    });
   });
 };
 
 export const getAllTables = async (tablesNamesList?: string[]): Promise<QueryDBResI> => {
   let tablesList = '';
   if (tablesNamesList) {
-    tablesList = ` AND (${ tablesNamesList.map(tn => { return `TABLE_NAME = '${tn}'` }).join(' or ') })`
+    tablesList = ` AND (${tablesNamesList.map(tn => {
+      return `TABLE_NAME = '${tn}'`
+    }).join(' or ')})`
   }
   const query = `SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=\'BASE TABLE\' AND TABLE_SCHEMA='${CONFIG.DB.DATABASE}'${tablesList}`;
   return await queryDB(query);
@@ -110,21 +106,21 @@ export const deleteElement = async (name: string, element: DBRow): Promise<Query
 };
 
 export const getUser = async (name: string): Promise<UserDataI | null> => {
-  const query = `SELECT * FROM users WHERE name = '${name}'`;
+  const query = `SELECT * FROM mysql.user WHERE User = '${name}'`;
   const response = await queryDB(query);
   //  @ts-ignore
   return response.body[0] || null;
 }
 
-export const createUser = async (user: UserDataI): Promise<QueryDBResI> => {
-  let fields: string[] = [], values: any[] = [];
-  Object.entries(user).forEach(([key, value]) => {
-    fields.push(key);
-    values.push(`'${value}'`);
-  });
-  const query = `INSERT INTO users (${fields.join(', ')}) VALUES (${values.join(', ')})`;
+export const createUser = async (name: string, pwd: string): Promise<QueryDBResI> => {
+  const query = `CREATE USER '${name}'@'%' IDENTIFIED BY '${pwd}'`;
   return await queryDB(query);
 };
+
+export const grantUser = async (user: string) => {
+  const query = `GRANT INSERT, DELETE, UPDATE ON ${CONFIG.DB.DATABASE}.* TO '${user}'@'%'`;
+  return await queryDB(query);
+}
 
 // export const getMostSamsumgEpsonDists = async (distName: string): Promise<QueryDBResI> => {
 //   const query = `CALL GetMostEpsonSamsungDists('${distName}')`;

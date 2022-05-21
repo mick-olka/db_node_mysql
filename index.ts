@@ -38,7 +38,11 @@ app.use('/', router);
 app.use(genericErrorHandler);
 app.use(notFoundError);
 
-connectToDB();
+// connectToDB('dev', 'dev').then(res => {
+//   console.log(res);
+// }).catch(e => {
+//   console.log(e);
+// });
 
 app.listen(port, () => {
     console.log(`⚡️[server]: Running at http://localhost:${port}`);

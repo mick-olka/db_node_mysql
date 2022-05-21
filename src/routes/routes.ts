@@ -37,19 +37,15 @@ router.post('/db/:name', checkAuth, dbController.deleteRowInTable);
 //  Result {body: DBRowT[], fields: FieldInfoI[], err: any}
 
 router.post('/user/register', dbController.registerUser);
-//  {msg: "User Registered" | "error", code: 0 | 1, user: User, err: null | err}
-//  User { name: string, email: string, status: 0 | 1 | 2 | 3 }
+//  {msg: "User Registered" | "error", code: 0 | 1, user: User}
+//  User { name: string }
 
 router.post('/user/login', dbController.loginUser);
-//  {msg: "User Logged" | "error", code: 0 | 1, user: User, err: null | any}
-//  User { name: string, email: string, status: 0 | 1 | 2 | 3 }
+//  {msg: "User Logged" | "error", code: 0 | 1, user: User}
+//  User { name: string }
 
 router.get('/auth', checkAuth, dbController.checkAuth);
 //  {code: 0 | 1, msg: 'success' | 'not auth', user?: User }
-
-// router.get('/db/module1/:name', dbController.getMostSamsumgEpsonDists);
-// //  {table: Result | null, err: e | null}
-// //  Result {body: DBRowT[], fields: FieldInfoI[], err: any}
 
 // ====== PAGES ===========
 
