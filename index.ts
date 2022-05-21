@@ -42,10 +42,4 @@ connectToDB();
 
 app.listen(port, () => {
     console.log(`⚡️[server]: Running at http://localhost:${port}`);
-    const getHash = async () => {
-        const salt = await bcrypt.genSalt(10);
-        const hasPassword = await bcrypt.hash("123456", salt);
-        console.log(hasPassword.length);
-    }
-    getHash();
 });

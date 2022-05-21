@@ -125,3 +125,8 @@ export const createUser = async (user: UserDataI): Promise<QueryDBResI> => {
   const query = `INSERT INTO users (${fields.join(', ')}) VALUES (${values.join(', ')})`;
   return await queryDB(query);
 };
+
+// export const getMostSamsumgEpsonDists = async (distName: string): Promise<QueryDBResI> => {
+//   const query = `CALL GetMostEpsonSamsungDists('${distName}')`;
+//   return await queryDB(query);
+// };

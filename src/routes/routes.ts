@@ -47,6 +47,9 @@ router.post('/user/login', dbController.loginUser);
 router.get('/auth', checkAuth, dbController.checkAuth);
 //  {code: 0 | 1, msg: 'success' | 'not auth', user?: User }
 
+// router.get('/db/module1/:name', dbController.getMostSamsumgEpsonDists);
+// //  {table: Result | null, err: e | null}
+// //  Result {body: DBRowT[], fields: FieldInfoI[], err: any}
 
 // ====== PAGES ===========
 

@@ -7,18 +7,22 @@ export const checkAuth = async (req: Request, res: Response, next: NextFunction)
     const secret = CONFIG.TOKEN_SECRET as Secret;
     const token = req.headers.token;
     if (token?.length) {
-        // @ts-ignore
-        const decoded = jwt.verify(token, secret);
-        //  @ts-ignore
-        const user = await getUser(decoded.name);
-        if (user) {
-            //  authorised
-            req.body.user = user;
-            next();
-        } else {
-            return res.status(500).json({err: "User not found" });
+        try {
+            // @ts-ignore
+            const decoded = jwt.verify(token, secret);
+            //  @ts-ignore
+            const user = await getUser(decoded.name);
+            if (user) {
+                //  authorised
+                req.body.user = user;
+                next();
+            } else {
+                return res.status(500).json({err: "User not found" });
+            }
+        } catch (e) {
+            return res.status(401).json({err: "token expired"});
         }
     } else {
-        return res.status(500).json({err: "unauthorised"});
+        return res.status(401).json({err: "unauthorised"});
     }
 }

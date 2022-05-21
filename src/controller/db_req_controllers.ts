@@ -100,3 +100,13 @@ export const checkAuth = async (req: Request, res: Response): Promise<void> => {
     res.status(401).json({code: 1, msg: 'not authorised'});
   }
 }
+
+// export const  getMostSamsumgEpsonDists = async (req: Request, res: Response): Promise<void> => {
+//   let distName = req.params.distName;
+//   try {
+//     const response = await dbService.getMostSamsumgEpsonDists(distName);
+//     res.status(200).json({table: response, err: null});
+//   } catch (e) {
+//     res.status(500).json({table: null, err: e});
+//   }
+// };
