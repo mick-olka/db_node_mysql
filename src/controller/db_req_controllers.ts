@@ -1,10 +1,10 @@
 import {Request, Response} from 'express';
 import * as dbService from '../service/database';
-import bcrypt from "bcrypt";
-import {UserDataI} from "../types/sqlTypes/SQLTypes";
 import jwt from "jsonwebtoken";
 import CONFIG from "../config/config";
-import {getUser} from "../service/database";
+import {getUser, pool} from "../service/database";
+import {escape_string, validateDate} from "../utils/_utils";
+import mysql from "mysql2";
 
 //  routes controllers
 
@@ -93,5 +93,71 @@ export const checkAuth = async (req: Request, res: Response): Promise<void> => {
     res.status(201).json({code: 0, msg: 'success', user: req.body.user});
   } else {
     res.status(401).json({code: 1, msg: 'not authorised'});
+  }
+}
+
+export const get1_4 = async (req: Request, res: Response): Promise<void> => {
+  let fromDate = req.query.fromDate as string;
+  let toDate = req.query.toDate as string;
+  try {
+    if (validateDate(fromDate) && validateDate(toDate)) {
+      const resp = await dbService.get1_4(fromDate, toDate);
+      // @ts-ignore
+      res.status(200).json({table: {body: resp.body[2], fields: resp.fields[2]}, err: null});
+    } else {
+      res.status(500).json({table: null, err: 'Invalid params - wrong date'});
+    }
+  } catch (e: any) {
+    console.log(e);
+    res.status(500).json({table: null, err: e.toString()});
+  }
+}
+
+export const get1_6 = async (req: Request, res: Response): Promise<void> => {
+  let daysCount = parseInt(req.query.daysCount as string);
+  try {
+    if (daysCount) {
+      const resp = await dbService.get1_6(daysCount);
+      // @ts-ignore
+      res.status(200).json({table: {body: resp.body[1], fields: resp.fields[1]}, err: null});
+    } else {
+      res.status(500).json({table: null, err: 'Invalid params - wrong input'});
+    }
+  } catch (e: any) {
+    console.log(e);
+    res.status(500).json({table: null, err: e.toString()});
+  }
+}
+
+export const get2_1 = async (req: Request, res: Response): Promise<void> => {
+  let name = escape_string(req.query.name as string);
+  try {
+    if (name) {
+      const resp = await dbService.get2_1(name);
+      // @ts-ignore
+      res.status(200).json({table: {body: resp.body[0], fields: resp.fields[0]}, err: null});
+    } else {
+      res.status(500).json({table: null, err: 'Invalid params - wrong name'});
+    }
+  } catch (e: any) {
+    console.log(e);
+    res.status(500).json({table: null, err: e.toString()});
+  }
+}
+
+export const get2_2 = async (req: Request, res: Response): Promise<void> => {
+  let month = parseInt(req.query.month as string);
+  let year = parseInt(req.query.year as string);
+  try {
+    if (month && year) {
+      const resp = await dbService.get2_2(month, year);
+      // @ts-ignore
+      res.status(200).json({table: {body: resp.body[0], fields: resp.fields[0]}, err: null});
+    } else {
+      res.status(500).json({table: null, err: 'Invalid params - wrong date'});
+    }
+  } catch (e: any) {
+    console.log(e);
+    res.status(500).json({table: null, err: e.toString()});
   }
 }

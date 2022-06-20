@@ -34,7 +34,8 @@ export const connectToDB = async (name: string, pwd: string): Promise<{ success:
       user: name,
       password: pwd,
       database: CONFIG.DB.DATABASE,
-      timezone: 'utc'
+      timezone: 'utc',
+      multipleStatements: true
     });
     await getUser(name);
     return {success: true, err: null}
@@ -126,3 +127,25 @@ export const grantUser = async (user: string) => {
 //   const query = `CALL GetMostEpsonSamsungDists('${distName}')`;
 //   return await queryDB(query);
 // };
+
+export const get1_4 = async (fromDate: string, toDate: string) => {
+  const query = `SET @fromDate:='${fromDate}'; SET @toDate:='${toDate}'; CALL GetInfoBetweenDates(@fromDate, @toDate);`;
+  return await queryDB(query);
+}
+
+export const get1_6 = async (daysCount: number) => {
+  const query = `SET @daysCount:='${daysCount}'; CALL GetLatestInfo(@daysCount);`;
+  return await queryDB(query);
+}
+
+export const get2_1 = async (name: string) => {
+  const query = `CALL GetGeneralRealizationFromFirm('"${name}"');`;
+  console.log(query);
+  return await queryDB(query);
+}
+
+export const get2_2 = async (month: number, year: number) => {
+  const query = `CALL GetGeneralRealizationByMonth(${month}, ${year});`;
+  console.log(query);
+  return await queryDB(query);
+}

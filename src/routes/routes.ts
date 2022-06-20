@@ -47,6 +47,14 @@ router.post('/user/login', dbController.loginUser);
 router.get('/auth', checkAuth, dbController.checkAuth);
 //  {code: 0 | 1, msg: 'success' | 'not auth', user?: User }
 
+router.get('/req1_4', dbController.get1_4);
+
+router.get('/req1_6', dbController.get1_6);
+
+router.get('/req2_1', dbController.get2_1);
+
+router.get('/req2_2', dbController.get2_2);
+
 // ====== PAGES ===========
 
 router.get('/db/page/:name', pagesController.getTablePage);
